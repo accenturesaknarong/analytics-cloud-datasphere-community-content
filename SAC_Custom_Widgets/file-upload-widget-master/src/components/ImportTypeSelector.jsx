@@ -18,10 +18,6 @@ export function beautifyImportTypeName(importType) {
   }
 }
 
-const filterImportTypes = (importTypes) => {
-  return importTypes.filter((importType) => importType !== "masterData" && importType !== "masterFactData")
-}
-
 function ImportTypeSelector(props) {
   const [importTypes, setImportTypes] = React.useState([]);
   const [error, setError] = React.useState("");
@@ -31,7 +27,7 @@ function ImportTypeSelector(props) {
       .then((resp) => {
         if (resp.importTypes) {
             const importTypeKeys = resp.importTypes.map((importTypeMetadata) => importTypeMetadata.importType)
-            setImportTypes(filterImportTypes(importTypeKeys));
+            setImportTypes(importTypeKeys);
         }
       })
       .catch((err) => {

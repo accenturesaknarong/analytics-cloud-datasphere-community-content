@@ -11,11 +11,13 @@ import Error from "./components/Error";
 import EndUserWrapper from "./components/endUser/EndUserWrapper";
 import AdminBuilderHeader from "./components/AdminBuilderHeader";
 import ModelJobsTimelineWrapper from "./components/ModelJobsTimelineWrapper";
+import DimensionSelector from "./components/DimensionSelector";
 
 function App(props) {
   const [modelId, setModelId] = React.useState(props.modelId);
-  const [importType, setImportType] = React.useState(props.importType);
+  const [importType, setImportType] = React.useState(props.importType || masterData);
   const [mappings, setMappings] = React.useState(props.mappings || {});
+  const [dimension, setDimension] = React.useState(props.dimension)
   const [defaultValues, setDefaultValues] = React.useState(
     props.defaultValues || {}
   );
@@ -64,16 +66,23 @@ function App(props) {
   }, [mappings]);
 
   React.useEffect(() => {
-    if (props.isAdminMode && defaultValues) {
-      props.setWidgetAttribute("defaultValues", defaultValues);
-    }
-  }, [defaultValues]);
-
-  React.useEffect(() => {
     if (props.isAdminMode && jobSettings) {
       props.setWidgetAttribute("jobSettings", jobSettings);
     }
   }, [jobSettings]);
+
+  React.useEffect(() => {
+    if (props.isAdminMode && dimension) {
+      const keys = metadata[importType]?.keys
+      const tempDefaultValue = {}
+      keys?.forEach(element => {
+        tempDefaultValue[element] = '-'
+      });
+      console.log("listen" , tempDefaultValue, dimension)
+      props.setWidgetAttribute("defaultValues", tempDefaultValue);
+      props.setWidgetAttribute("dimension", dimension);
+    }
+  }, [dimension, importType, metadata]);
 
   // Get Metadata
   React.useEffect(() => {
@@ -91,8 +100,14 @@ function App(props) {
       });
   }, [modelId]);
 
+  const filterColumnByDimension = (dimension) => {
+    const tempMeta = metadata[importType]
+    const columns = dimension ? tempMeta?.columns?.filter(item => item?.columnName.includes(dimension) && item?.columnName?.split('_')[0]?.toLowerCase() === dimension?.toLowerCase()) : []
+    return { ...tempMeta, columns }
+  }
+
   const showScreen = () => {
-    switch(props.mode) {
+    switch (props.mode) {
       case "BUILDER": {
         return (
           <div>
@@ -100,18 +115,19 @@ function App(props) {
             <div style={{ padding: "24px", paddingTop: "12px" }}>
               <Error message={error} close={() => setError("")} />
               <ModelSelector modelId={modelId} setModelId={modelChangeHandler} />
-              <ImportTypeSelector
+              {/* <ImportTypeSelector
                 modelId={modelId}
                 importType={importType}
                 setImportType={importTypeChangeHandler}
-              />
+              /> */}
+              <DimensionSelector importTypeMetadata={metadata[importType]} setDimension={setDimension} dimension={dimension} />
               <MappingSelector
                 modelId={modelId}
-                importTypeMetadata={metadata[importType]}
+                importTypeMetadata={dimension ? filterColumnByDimension(dimension) : metadata[importType]}
                 mappings={mappings}
                 setMappings={setMappings}
               />
-              <DefaultValueSelector
+              {/*   <DefaultValueSelector
                 modelId={modelId}
                 importTypeMetadata={metadata[importType]}
                 defaultValues={defaultValues}
@@ -124,7 +140,7 @@ function App(props) {
                 mappings={mappings}
                 importType={importType}
               />
-              <ModelJobsTimelineWrapper modelId={modelId} />
+              <ModelJobsTimelineWrapper modelId={modelId} /> */}
             </div>
           </div>
         );
@@ -133,9 +149,9 @@ function App(props) {
         console.log("Styler Panel not implemented.")
         break;
       }
-      case("STORY"):
+      case ("STORY"):
       default: {
-        return <EndUserWrapper modelId={modelId} metadata={metadata} importType={importType} mappings={mappings} jobFinsishedEventDispatcher={props.jobFinsishedEventDispatcher} />
+        return <EndUserWrapper modelId={props.modelId} metadata={props.metadata} importType={props.importType} mappings={props.mappings} defaultValues={props.defaultValues} jobFinsishedEventDispatcher={props.jobFinsishedEventDispatcher} />
       }
     }
   };

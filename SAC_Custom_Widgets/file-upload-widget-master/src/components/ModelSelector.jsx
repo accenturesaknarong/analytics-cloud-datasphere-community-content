@@ -47,6 +47,8 @@ function ModelSelector(props) {
   const [filter, setFilter] = React.useState("");
   const [error, setError] = React.useState("");
   const [networkLoading, setNetworkLoading] = React.useState(true);
+  const [selectedModel, setSelectedModel] = React.useState(models.find((model) => model.modelID === props.modelId))
+ 
   React.useEffect(() => {
     DataImportServiceApi.getInstance()
       .getModels()
@@ -69,21 +71,25 @@ function ModelSelector(props) {
       );
     });
   }
-  const selectedModel = models.find((model) => model.modelID === props.modelId)
+
   return (
     <Panel headerText={"Model Selection"}>
       <div
         style={{ display: "flex", flexDirection: "column", paddingLeft: 30 }}
       >
-        <Error message={error} close={() => setError("")}/>
+        <Error message={error} close={() => setError("")} />
         <ModelInfo
           networkLoading={networkLoading}
           models={models}
-          modelId={props.modelId}
+          modelId={selectedModel?.modelID}
         />
         <ComboBox
           style={{ width: '100%', border: '1px solid lightgrey' }}
-          onSelectionChange={(e) => props.setModelId(e.detail.item.dataset.id)}
+          onSelectionChange={(e) => {
+            setSelectedModel(models.find((model) => model.modelID === e.detail.item.dataset.id))
+            props.setModelId(e.detail.item.dataset.id)
+          }
+          }
           onInput={(e) => setFilter(e.target.value)}
           value={selectedModel ? selectedModel.modelName : ""}
           filter="None"

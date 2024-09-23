@@ -37,7 +37,8 @@ function EndUserWrapper(props) {
         setImportResult={setImportResult}
         setImportStatus={setImportStatus}
         importType={props.importType}
-        metadata={props.metadata}
+        mappings={props.mappings}
+        defaultValues={props?.defaultValues}
         importStatus={importStatus}
         importResult={importResult}
         isViewMode={isViewMode}

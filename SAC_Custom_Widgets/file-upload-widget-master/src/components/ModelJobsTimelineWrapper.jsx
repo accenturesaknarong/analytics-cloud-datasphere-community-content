@@ -35,7 +35,7 @@ function ModelJobsTimelineWrapper(props) {
 
     React.useEffect(() => {
         if (jobs.length === 0 && error === "") { 
-            fetchJobs()
+            // fetchJobs()
         }
     }, [props.modelId, jobs, error])
 

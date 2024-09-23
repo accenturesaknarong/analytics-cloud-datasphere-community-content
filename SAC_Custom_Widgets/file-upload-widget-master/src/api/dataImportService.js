@@ -19,7 +19,7 @@ export default class DataImportServiceApi {
   WIDGET_ENDPOINT = "/widget"
 
   BASE_HEADER = {
-     "x-sap-dis-request-source"  : "fileUploadWidget"
+    "x-sap-dis-request-source": "fileUploadWidget"
   }
 
   constructor(URL) {
@@ -27,7 +27,7 @@ export default class DataImportServiceApi {
     this.mappings = {};
     this.defaultValues = {};
     this.jobSettings = {};
-    this.importType = "factData";
+    this.importType = "masterData";
     this.chunkSize = 100_000;
     this.resultObj = {};
     this.delimiter = ","
@@ -77,7 +77,7 @@ export default class DataImportServiceApi {
   async getXLSXScriptURL() {
     // Used to generate a consistent URL for the XLSX script, used to parse XLSX data within a webworker
     const widgetXLSXUrl = this.URL + this.WIDGET_ENDPOINT + "/xlsx.mini.min.js"
-    let response = await fetch(widgetXLSXUrl, {headers: this.BASE_HEADER});
+    let response = await fetch(widgetXLSXUrl, { headers: this.BASE_HEADER });
     if (!response.ok) {
       return "https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.mini.min.js"
     }
@@ -92,7 +92,7 @@ export default class DataImportServiceApi {
      * @returns {Promise<Array>} A promise that resolves with the list of models
   */
   async getModels() {
-    let response = await fetch(this.URL + this.MODELS_ENDPOINT, {headers: this.BASE_HEADER});
+    let response = await fetch(this.URL + this.MODELS_ENDPOINT, { headers: this.BASE_HEADER });
     if (!response.ok) {
       throw new Error("Unable to get list of models");
     }
@@ -110,7 +110,7 @@ export default class DataImportServiceApi {
      * @returns {Promise<Object>} A promise that resolves with the model information as an object.
    */
   async getModel(modelId) {
-    let response = await fetch(this.URL + this.MODELS_ENDPOINT + "/" + modelId, {headers: this.BASE_HEADER});
+    let response = await fetch(this.URL + this.MODELS_ENDPOINT + "/" + modelId, { headers: this.BASE_HEADER });
     if (!response.ok) {
       throw new Error("Unable to get model information");
     }
@@ -129,7 +129,7 @@ export default class DataImportServiceApi {
   async getModelMetadata(modelId) {
     let response = await fetch(
       this.URL + this.MODELS_ENDPOINT + "/" + modelId + "/metadata",
-      {headers: this.BASE_HEADER}
+      { headers: this.BASE_HEADER }
     );
     if (!response.ok) {
       throw new Error("Unable to get model metadata");
@@ -177,7 +177,8 @@ export default class DataImportServiceApi {
     callback = (importStatus, importResultData) => { },
     mode = "json",
     userDefaultValues = {},
-    columnNames
+    columnNames,
+    mappings,
   ) {
     this.resultObj = new DataImportJobResults();
     this.resultObj.columnNames = [[...columnNames, "Rejection Reason"].join(this.delimiter)]
@@ -191,7 +192,7 @@ export default class DataImportServiceApi {
     let createdJob = {};
 
     try {
-      createdJob = await this.createJob(modelId, this.importType, userDefaultValues);
+      createdJob = await this.createJob(modelId, this.importType, userDefaultValues , mappings);
     } catch (error) {
       this.resultObj.error = error;
       callback(this.status, this.resultObj);
@@ -300,16 +301,12 @@ export default class DataImportServiceApi {
    * @param {String} userDefaultValues - Default Values specifed by the end user
    * @returns {Object} The Response of the Job Creation Request
    */
-  async createJob(modelId, importType = "factData", userDefaultValues = {}) {
+  async createJob(modelId, importType = "factData", userDefaultValues = {} , mappings) {
     const jobUrl = this.URL + this.MODELS_ENDPOINT + "/" + modelId + "/" + importType;
-    Object.keys(this.mappings).forEach((key) => {
-      // Checks if the user has specified mappings for a column
-      if (this.mappings[key] === undefined || this.mappings[key] === "") {
-        delete this.mappings[key];
-      }
-    });
 
-    const jobSettings = { ...this.jobSettings };
+    const jobSettings = {
+      ...this.jobSettings,
+    };
     const pivotOptions = jobSettings.pivotOptions;
     // If Pivot Options are not specified correctly, do not apply them to the job
     if (pivotOptions &&
@@ -325,7 +322,7 @@ export default class DataImportServiceApi {
         ...this.BASE_HEADER
       },
       body: JSON.stringify({
-        Mapping: this.mappings,
+        Mapping: mappings,
         DefaultValues: { ...this.defaultValues, ...userDefaultValues },
         JobSettings: jobSettings,
       }),
@@ -417,7 +414,7 @@ export default class DataImportServiceApi {
       this.URL + this.JOBS_ENDPOINT + "/" + jobId + "/status";
     let options = {
       method: "GET",
-      headers : this.BASE_HEADER
+      headers: this.BASE_HEADER
     };
     let response = await fetch(jobStatusUrl, options);
     if (!response.ok) {
@@ -436,7 +433,7 @@ export default class DataImportServiceApi {
       this.URL + this.JOBS_ENDPOINT;
     let options = {
       method: "GET",
-      headers : this.BASE_HEADER
+      headers: this.BASE_HEADER
     };
     let response = await fetch(jobStatusUrl, options);
     if (!response.ok) {
@@ -455,7 +452,7 @@ export default class DataImportServiceApi {
       this.URL + this.JOBS_ENDPOINT + "/" + jobId + "/invalidRows";
     let options = {
       method: "GET",
-      headers : this.BASE_HEADER
+      headers: this.BASE_HEADER
     };
 
     let response = await fetch(invalidRowsUrl, options);
@@ -512,7 +509,7 @@ export default class DataImportServiceApi {
     }
     const headerRow = this._getHeaderRow(importData)
     // check that each key column has a column value or is a pivotKey / pivotValue or has a default value
-    const importTypeMetadataKeys = importTypeMetadata.keys
+    const importTypeMetadataKeys = importTypeMetadata
     for (let key of importTypeMetadataKeys) {
       if (!headerRow.includes(key) && // header does not include the key
         !headerRow.includes(this.mappings[key]) && // a mapped value in the header does not contain the key
@@ -527,15 +524,15 @@ export default class DataImportServiceApi {
     }
 
     // check that each column in the headers that are not pivot keys have a match in the metadata with consideration for mappings
-    const columnNames = importTypeMetadata.columns.map((c) => c.columnName)
+    
     // collect valid mapping values
     const validMappingsValues = []
     for (let key in this.mappings) {
       // check for misconfiguration that could occur if a model changes
-      if (!columnNames.includes(key)) {
+      if (!importTypeMetadata.includes(key)) {
         errors.push(`The mapping ${key} to ${this.mappings[key]} is not valid. Please contact an administrator to fix the mappings settings.`)
       }
-      if (columnNames.includes(key) && this.mappings[key] !== undefined && this.mappings[key] !== "") {
+      if (importTypeMetadata.includes(key) && this.mappings[key] !== undefined && this.mappings[key] !== "") {
         validMappingsValues.push(this.mappings[key])
       }
     }
@@ -544,7 +541,7 @@ export default class DataImportServiceApi {
     if (!this.jobSettings["ignoreAdditionalColumns"]) {
       for (let headerName of headerRow) {
         if (
-          !columnNames.includes(headerName) &&   // header is not the same as metadata
+          !importTypeMetadata.includes(headerName) &&   // header is not the same as metadata
           !validMappingsValues.includes(headerName)    // header does not have a valid mapping that is mapped into metadata 
         ) {
           errors.push(`Data contains unknown column - ${headerName}`)

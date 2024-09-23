@@ -14,8 +14,9 @@ export default class BuilderWidget extends HTMLElement {
       this.baseURL + "/api/v1/dataimport"
     );
     this.modelId = "";
-    this.importType = "";
+    this.importType = "masterData";
     this.mappings = {};
+    this.dimension = "";
     this.defaultValues = {};
     this.jobSettings = {};
     this.sheetName = "";
@@ -45,6 +46,7 @@ export default class BuilderWidget extends HTMLElement {
    * @param {Object} changedProperties - An object containing the properties that have changed
    */
   onCustomWidgetAfterUpdate(changedProperties) {
+    console.log("builder", changedProperties)
     if (changedProperties["modelId"] !== undefined) {
       this.modelId = changedProperties["modelId"];
     }
@@ -63,6 +65,9 @@ export default class BuilderWidget extends HTMLElement {
     if (changedProperties["sheetName"] !== undefined) {
       this.sheetName = changedProperties["sheetName"];
     }
+    if (changedProperties["dimension"] !== undefined) {
+      this.dimension = changedProperties["dimension"];
+    }
     this.updateSettings();
   }
 
@@ -72,6 +77,7 @@ export default class BuilderWidget extends HTMLElement {
    * @param {*} value - the new value of the property
    */
   setWidgetAttribute(key, value) {
+    console.log("setWidgetAttribute" , key , value)
     const settings = JSON.parse(this.getAttribute("settings"));
     settings[key] = value;
     const event = new CustomEvent("propertiesChanged", {
@@ -98,6 +104,7 @@ export default class BuilderWidget extends HTMLElement {
       mappings: this.mappings,
       defaultValues: this.defaultValues,
       sheetName: this.sheetName,
+      dimension: this.dimension,
     };
     this.setAttribute("settings", JSON.stringify(settings));
   }

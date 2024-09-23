@@ -48,7 +48,7 @@ function EndUserEntryDialog(props) {
     if (
       ((file && file.name !== parsedFileName) || (file && selectedSheetName !== parsedSheetName)) &&
       !props.importRunning
-      ) {
+    ) {
       setFileParserRunning(true)
 
       // Reset import state
@@ -68,7 +68,7 @@ function EndUserEntryDialog(props) {
         const sheetNames = responseArray[1]
         setImportData(importData)
         setSheetNames(sheetNames)
-        if(sheetNames.length > 0 && selectedSheetName === "") {
+        if (sheetNames.length > 0 && selectedSheetName === "") {
           setSelectedSheetName(sheetNames[0])
         }
         setFileParserRunning(false) // Need to set this value in callback to prevent batch state setting
@@ -97,8 +97,9 @@ function EndUserEntryDialog(props) {
   const [importValidationErrors, setImportValidationErrors] = React.useState([]);
 
   React.useEffect(() => {
-    if (!props.importRunning && importData.length > 0 && !importDataValidationCompleted && props.metadata && props.importType) {
-      const errors = DataImportServiceApi.INSTANCE.validateJobData(importData, props.metadata[props.importType])
+    if (!props.importRunning && importData.length > 0 && !importDataValidationCompleted && props?.mappings && props.importType) {
+      const errors = DataImportServiceApi.INSTANCE.validateJobData(importData, Object.keys(props?.mappings))
+     
       setShouldDisplayVersionDropdown(!DataImportServiceApi.INSTANCE.validateVersionExistsInDataOrSettings(importData))
       setImportValidationErrors(errors)
       setImportDataValidationCompleted(true)
@@ -129,19 +130,21 @@ function EndUserEntryDialog(props) {
       props.setImportRunning(true);
 
       // we provide value for version from end user for default values
-      const userDefaultValues = {}
+      const userDefaultValues = props?.defaultValues
+
       if (version !== "") {
         userDefaultValues['Version'] = version
       }
 
-      const columnNames = props.metadata.factData.columns.map((c) => c.columnName)
+      const columnNames = Object.keys(props?.mappings)
       DataImportServiceApi.INSTANCE.uploadData(
         props.modelId,
         importData,
         importFinishedCallback,
         "csv",
         userDefaultValues,
-        columnNames
+        columnNames,
+        props?.mappings,
       );
     }
     // avoid triggering this effect on version change
@@ -150,7 +153,7 @@ function EndUserEntryDialog(props) {
 
 
   const defaultValues = DataImportServiceApi.INSTANCE.getDefaultValues()
-  let defaultVersion = defaultValues.hasOwnProperty('Version') ? defaultValues.Version : "" 
+  let defaultVersion = defaultValues.hasOwnProperty('Version') ? defaultValues.Version : ""
 
   return (
     <div>
@@ -166,7 +169,7 @@ function EndUserEntryDialog(props) {
           style={{ padding: 0 }}
           footer={
             <Bar
-              style={{ minWidth: "100%", height: "38px", backgroundColor: 'white', boxShadow: "none"}}
+              style={{ minWidth: "100%", height: "38px", backgroundColor: 'white', boxShadow: "none" }}
               endContent={
                 <>
                   <Button
@@ -197,25 +200,25 @@ function EndUserEntryDialog(props) {
             />
           }
         >
-        <MainDialogContents
-          setSelectedSheetName={setSheetNameHandler}
-          selectedSheetName={selectedSheetName}
-          setFile={setFile}
-          setParsedFileName={setParsedFileName}
-          file={file}
-          setVersion={setVersionHandler}
-          version={version}
-          defaultVersion={defaultVersion}
-          shouldDisplayVersionDropdown={shouldDisplayVersionDropdown && defaultVersion === ""}
-          importType={props.importType}
-          importValidationErrors={importValidationErrors}
-          setImportValidationErrors={setImportValidationErrors}
-          importDataValidationCompleted={importDataValidationCompleted}
-          importData={importData}
-          sheetNames={sheetNames}
-          setSheetNames={setSheetNames}
-          fileParserRunning={fileParserRunning}
-          modelId={props.modelId}
+          <MainDialogContents
+            setSelectedSheetName={setSheetNameHandler}
+            selectedSheetName={selectedSheetName}
+            setFile={setFile}
+            setParsedFileName={setParsedFileName}
+            file={file}
+            setVersion={setVersionHandler}
+            version={version}
+            defaultVersion={defaultVersion}
+            shouldDisplayVersionDropdown={shouldDisplayVersionDropdown && defaultVersion === ""}
+            importType={props.importType}
+            importValidationErrors={importValidationErrors}
+            setImportValidationErrors={setImportValidationErrors}
+            importDataValidationCompleted={importDataValidationCompleted}
+            importData={importData}
+            sheetNames={sheetNames}
+            setSheetNames={setSheetNames}
+            fileParserRunning={fileParserRunning}
+            modelId={props.modelId}
           />
         </Dialog>,
         document.body
@@ -228,7 +231,7 @@ function EndUserEntryDialog(props) {
           style={{ padding: 0 }}
           footer={
             <Bar
-              style={{ minWidth: "100%", height: "38px", background : "transparent" }}
+              style={{ minWidth: "100%", height: "38px", background: "transparent" }}
               endContent={
                 <>
                   <Button
@@ -247,7 +250,7 @@ function EndUserEntryDialog(props) {
             />
           }
         >
-          <ImportRunningDialogContents text={"Please wait while the data import is running."}/>
+          <ImportRunningDialogContents text={"Please wait while the data import is running."} />
         </Dialog>,
         document.body
       )}

@@ -18,10 +18,11 @@ export default class StoryWidget extends HTMLElement {
     );
     // Upload Handler & Settings
     // Class Properties, try to avoid adding too many here
-    this.importType = "";
+    this.importType = "masterData";
     this.modelId = "";
     this.resultObj = undefined
     this.updateSettings();
+    this.dimension = "";
   }
 
   /**
@@ -104,7 +105,7 @@ export default class StoryWidget extends HTMLElement {
      * @param {Object} changedProperties - An object containing the properties that have changed
    */
   onCustomWidgetAfterUpdate(changedProperties) {
-    console.log("Import Widget Properties", changedProperties);
+    console.log("Import Widget Properties Story", changedProperties);
     if (changedProperties["modelId"] !== undefined) {
       this.modelId = changedProperties["modelId"];
     }
@@ -123,6 +124,9 @@ export default class StoryWidget extends HTMLElement {
     if (changedProperties["sheetName"] !== undefined) {
       this.sheetName = changedProperties["sheetName"];
     }
+    if (changedProperties["dimension"] !== undefined) {
+      this.dimension = changedProperties["dimension"];
+    }
     this.updateSettings();
   }
 
@@ -139,6 +143,7 @@ export default class StoryWidget extends HTMLElement {
       mappings: this.getMappings(),
       defaultValues: this.getDefaultValues(),
       importType: this.importType,
+      dimension: this.dimension
     };
     this.setAttribute("settings", JSON.stringify(settings));
   }
