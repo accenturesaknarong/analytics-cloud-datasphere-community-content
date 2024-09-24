@@ -48,12 +48,13 @@ function ModelSelector(props) {
   const [error, setError] = React.useState("");
   const [networkLoading, setNetworkLoading] = React.useState(true);
   const [selectedModel, setSelectedModel] = React.useState(models.find((model) => model.modelID === props.modelId))
- 
+
   React.useEffect(() => {
     DataImportServiceApi.getInstance()
       .getModels()
       .then((resp) => {
         setModels(resp.models);
+        props?.modelId && setSelectedModel(resp?.models.find((model) => model?.modelID === props?.modelId))
         setNetworkLoading(false);
       })
       .catch((err) => {
@@ -90,9 +91,8 @@ function ModelSelector(props) {
             props.setModelId(e.detail.item.dataset.id)
           }
           }
-          onInput={(e) => setFilter(e.target.value)}
           value={selectedModel ? selectedModel.modelName : ""}
-          filter="None"
+          filter="Contains"
         >
           {filteredModels.map((model) => (
             <ComboBoxItem text={model.modelName} data-id={model.modelID} key={model.modelID} />

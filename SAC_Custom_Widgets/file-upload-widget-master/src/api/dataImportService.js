@@ -192,7 +192,7 @@ export default class DataImportServiceApi {
     let createdJob = {};
 
     try {
-      createdJob = await this.createJob(modelId, this.importType, userDefaultValues , mappings);
+      createdJob = await this.createJob(modelId, this.importType, userDefaultValues, mappings);
     } catch (error) {
       this.resultObj.error = error;
       callback(this.status, this.resultObj);
@@ -301,7 +301,7 @@ export default class DataImportServiceApi {
    * @param {String} userDefaultValues - Default Values specifed by the end user
    * @returns {Object} The Response of the Job Creation Request
    */
-  async createJob(modelId, importType = "factData", userDefaultValues = {} , mappings) {
+  async createJob(modelId, importType = "factData", userDefaultValues = {}, mappings) {
     const jobUrl = this.URL + this.MODELS_ENDPOINT + "/" + modelId + "/" + importType;
 
     const jobSettings = {
@@ -344,7 +344,6 @@ export default class DataImportServiceApi {
    */
   async postCSVDataToJob(jobId, chunk) {
     const jobUrl = this.URL + this.JOBS_ENDPOINT + "/" + jobId;
-
     const data = Papa.unparse(chunk);
     const options = {
       method: "POST",
@@ -499,22 +498,20 @@ export default class DataImportServiceApi {
   /**
    * 
    * @param {Array<String>} importData - The Data inputted by the user 
-   * @param {*} importTypeMetadata - The Metadata of the model we want to validate
+   * @param {*} mapping - The Metadata of the model we want to validate
    * @returns 
    */
-  validateJobData(importData, importTypeMetadata) {
+  validateJobData(importData, mappings) {
     const errors = []
     if (importData.length < 2) {
       errors.push("The data should contain at least one row of headers and one row of values.")
     }
     const headerRow = this._getHeaderRow(importData)
     // check that each key column has a column value or is a pivotKey / pivotValue or has a default value
-    const importTypeMetadataKeys = importTypeMetadata
+    const importTypeMetadataKeys = Object?.values(mappings)
     for (let key of importTypeMetadataKeys) {
       if (!headerRow.includes(key) && // header does not include the key
-        !headerRow.includes(this.mappings[key]) && // a mapped value in the header does not contain the key
-        !(this.jobSettings.pivotOptions !== undefined && this.jobSettings.pivotOptions.pivotKeyName === key) &&  // pivot options exist and the keyName is not the key
-        !(this.jobSettings.pivotOptions !== undefined && this.jobSettings.pivotOptions.pivotValueName === key) && // pivot options exist and the keyValue is not the key
+        !headerRow.includes(mappings[key]) && // a mapped value in the header does not contain the key
         !(this.defaultValues[key]) && // A default value does not exist for the key
         !(key === "Version") // The version dimension has a default default value of public.Actual so we can skip this "key"...
       ) {
@@ -524,16 +521,16 @@ export default class DataImportServiceApi {
     }
 
     // check that each column in the headers that are not pivot keys have a match in the metadata with consideration for mappings
-    
+
     // collect valid mapping values
     const validMappingsValues = []
-    for (let key in this.mappings) {
+    for (let key in mappings) {
       // check for misconfiguration that could occur if a model changes
-      if (!importTypeMetadata.includes(key)) {
-        errors.push(`The mapping ${key} to ${this.mappings[key]} is not valid. Please contact an administrator to fix the mappings settings.`)
+      if (!Object?.keys(mappings).includes(key)) {
+        errors.push(`The mapping ${key} to ${mappings[key]} is not valid. Please contact an administrator to fix the mappings settings.`)
       }
-      if (importTypeMetadata.includes(key) && this.mappings[key] !== undefined && this.mappings[key] !== "") {
-        validMappingsValues.push(this.mappings[key])
+      if (Object?.values(mappings).includes(key) && this.mappings[key] !== undefined && mappings[key] !== "") {
+        validMappingsValues.push(mappings[key])
       }
     }
 
@@ -541,7 +538,7 @@ export default class DataImportServiceApi {
     if (!this.jobSettings["ignoreAdditionalColumns"]) {
       for (let headerName of headerRow) {
         if (
-          !importTypeMetadata.includes(headerName) &&   // header is not the same as metadata
+          !Object?.values(mappings).includes(headerName) &&   // header is not the same as metadata
           !validMappingsValues.includes(headerName)    // header does not have a valid mapping that is mapped into metadata 
         ) {
           errors.push(`Data contains unknown column - ${headerName}`)

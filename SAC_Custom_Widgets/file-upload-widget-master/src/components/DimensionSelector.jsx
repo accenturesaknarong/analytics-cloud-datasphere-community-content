@@ -5,8 +5,8 @@ import { Label, Option, Panel, Select } from "@ui5/webcomponents-react";
 
 function DimensionSelector(props) {
   const { importTypeMetadata, setDimension, dimension } = props
+  console.log("metaData" , importTypeMetadata)
   const [dimensionList, setDimensionList] = React.useState([]);
-  // const [selectedDimension, setSelectedDimension] = React.useState([]);
   const [error, setError] = React.useState("");
 
   useEffect(() => {
@@ -29,17 +29,13 @@ function DimensionSelector(props) {
       >
         <Error message={error} close={() => setError("")} />
         <Label>Select Dimension</Label>
-        <Select
+        {dimensionList?.length > 0 && <Select
           onChange={(e) =>
-            props.setDimension(e.detail.selectedOption.dataset.id)
+            setDimension(e.detail.selectedOption.dataset.id)
           }
           style={{ width: '100%', border: '1px solid lightgrey' }}
         >
-          <Option key="" data-id="" selected={props.importType === ""}>
-            {dimensionList && dimensionList.length === 0 ? "Loading..." : ""}
-          </Option>
           {dimensionList.map((name) => {
-            console.log(name, dimension)
             return (
               <Option
                 key={name}
@@ -50,7 +46,7 @@ function DimensionSelector(props) {
               </Option>
             );
           })}
-        </Select>
+        </Select>}
         {/* <Label wrappingType="Normal">Note: swapping import type resets default values, mappings, and job settings.</Label> */}
       </div>
     </Panel>

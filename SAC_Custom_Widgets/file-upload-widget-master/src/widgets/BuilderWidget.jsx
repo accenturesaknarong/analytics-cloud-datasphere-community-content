@@ -46,7 +46,6 @@ export default class BuilderWidget extends HTMLElement {
    * @param {Object} changedProperties - An object containing the properties that have changed
    */
   onCustomWidgetAfterUpdate(changedProperties) {
-    console.log("builder", changedProperties)
     if (changedProperties["modelId"] !== undefined) {
       this.modelId = changedProperties["modelId"];
     }
@@ -77,7 +76,6 @@ export default class BuilderWidget extends HTMLElement {
    * @param {*} value - the new value of the property
    */
   setWidgetAttribute(key, value) {
-    console.log("setWidgetAttribute" , key , value)
     const settings = JSON.parse(this.getAttribute("settings"));
     settings[key] = value;
     const event = new CustomEvent("propertiesChanged", {

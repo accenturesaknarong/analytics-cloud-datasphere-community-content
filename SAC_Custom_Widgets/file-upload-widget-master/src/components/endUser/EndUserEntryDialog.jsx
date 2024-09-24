@@ -75,7 +75,8 @@ function EndUserEntryDialog(props) {
       }
 
       const csvCallback = (importData) => {
-        setImportData(importData)
+        const dataLength = importData[0]?.length
+        setImportData(importData?.filter(item => item?.length === dataLength))
         setFileParserRunning(false)
       }
 
@@ -98,8 +99,8 @@ function EndUserEntryDialog(props) {
 
   React.useEffect(() => {
     if (!props.importRunning && importData.length > 0 && !importDataValidationCompleted && props?.mappings && props.importType) {
-      const errors = DataImportServiceApi.INSTANCE.validateJobData(importData, Object.keys(props?.mappings))
-     
+      const errors = DataImportServiceApi.INSTANCE.validateJobData(importData, props?.mappings)
+
       setShouldDisplayVersionDropdown(!DataImportServiceApi.INSTANCE.validateVersionExistsInDataOrSettings(importData))
       setImportValidationErrors(errors)
       setImportDataValidationCompleted(true)

@@ -22,7 +22,6 @@ export default class StoryWidget extends HTMLElement {
     this.modelId = "";
     this.resultObj = undefined
     this.updateSettings();
-    this.dimension = "";
   }
 
   /**
@@ -105,7 +104,6 @@ export default class StoryWidget extends HTMLElement {
      * @param {Object} changedProperties - An object containing the properties that have changed
    */
   onCustomWidgetAfterUpdate(changedProperties) {
-    console.log("Import Widget Properties Story", changedProperties);
     if (changedProperties["modelId"] !== undefined) {
       this.modelId = changedProperties["modelId"];
     }

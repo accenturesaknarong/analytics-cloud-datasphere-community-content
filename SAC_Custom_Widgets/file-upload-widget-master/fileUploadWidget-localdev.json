@@ -3,8 +3,8 @@
   "vendor": "SAP",
   "license": "",
   "id": "com.sap.fileUploadWidgetLocalhostViteTest",
-  "version": "0.0.2",
-  "name": "File Upload Widget Localhost Vite",
+  "version": "0.0.1",
+  "name": "File Upload Master Widget (LocalHost)",
   "newInstancePrefix": "FileUploadWidgetLocalhostViteTest",
   "description": "A widget that allows users to upload a file and import data into a model",
   "imports": [],
@@ -30,10 +30,9 @@
       "description": "The targeted model ID",
       "default": ""
     },
-    "importType": {
+    "dimension": {
       "type": "string",
-      "description": "The data import type",
-      "default": "Update"
+      "default": ""
     },
     "mappings": {
       "type": "Selection",
@@ -42,10 +41,6 @@
     "defaultValues": {
       "type": "Selection",
       "description": "Default values to be used when import data into a model and the data is missing a column"
-    },
-    "jobSettings": {
-      "type": "Selection",
-      "description": "Data Import Service API job settings"
     }
   },
   "events": {
