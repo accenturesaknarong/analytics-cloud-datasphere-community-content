@@ -146,6 +146,7 @@ function EndUserEntryDialog(props) {
         userDefaultValues,
         columnNames,
         props?.mappings,
+        props?.publicDimensionId
       );
     }
     // avoid triggering this effect on version change

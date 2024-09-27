@@ -17,3 +17,9 @@ export const SELECT_STYLE ={
       }
     })
 }
+
+export const API_STATE = {
+  loading: "LOADING",
+  complete: "COMPLETE",
+  err: "ERROR"
+}

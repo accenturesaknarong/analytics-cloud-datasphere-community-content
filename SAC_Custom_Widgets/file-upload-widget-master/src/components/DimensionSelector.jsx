@@ -5,7 +5,6 @@ import { Label, Option, Panel, Select } from "@ui5/webcomponents-react";
 
 function DimensionSelector(props) {
   const { importTypeMetadata, setDimension, dimension } = props
-  console.log("metaData" , importTypeMetadata)
   const [dimensionList, setDimensionList] = React.useState([]);
   const [error, setError] = React.useState("");
 

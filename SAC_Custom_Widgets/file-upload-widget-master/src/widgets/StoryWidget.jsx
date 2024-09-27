@@ -94,7 +94,7 @@ export default class StoryWidget extends HTMLElement {
       this.root = ReactDOM.createRoot(elem)
     }
     const settings = JSON.parse(this.getAttribute("settings"));
-    const props = {...settings, jobFinsishedEventDispatcher: this.jobRunFinishedEventDispatcher.bind(this),}
+    const props = { ...settings, jobFinsishedEventDispatcher: this.jobRunFinishedEventDispatcher.bind(this), }
     render(this.root, props)
   }
 
@@ -124,6 +124,9 @@ export default class StoryWidget extends HTMLElement {
     }
     if (changedProperties["dimension"] !== undefined) {
       this.dimension = changedProperties["dimension"];
+    } 
+    if (changedProperties["publicDimensionId"] !== undefined) {
+      this.publicDimensionId = changedProperties["publicDimensionId"];
     }
     this.updateSettings();
   }
@@ -141,7 +144,8 @@ export default class StoryWidget extends HTMLElement {
       mappings: this.getMappings(),
       defaultValues: this.getDefaultValues(),
       importType: this.importType,
-      dimension: this.dimension
+      dimension: this.dimension,
+      publicDimensionId : this.publicDimensionId
     };
     this.setAttribute("settings", JSON.stringify(settings));
   }

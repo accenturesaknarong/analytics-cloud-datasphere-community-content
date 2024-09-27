@@ -3,7 +3,7 @@
   "vendor": "SAP",
   "license": "",
   "id": "com.sap.fileUploadWidgetLocalhostViteTest",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "name": "File Upload Master Widget (LocalHost)",
   "newInstancePrefix": "FileUploadWidgetLocalhostViteTest",
   "description": "A widget that allows users to upload a file and import data into a model",
@@ -41,6 +41,10 @@
     "defaultValues": {
       "type": "Selection",
       "description": "Default values to be used when import data into a model and the data is missing a column"
+    },
+    "publicDimensionId" : {
+      "type": "string", 
+      "default": ""
     }
   },
   "events": {

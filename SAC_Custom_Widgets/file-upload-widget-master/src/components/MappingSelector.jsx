@@ -10,6 +10,7 @@ import {
   Icon,
   Input,
   Label,
+  Loader,
   Option,
   Panel,
   Text,
@@ -20,7 +21,7 @@ import FileHandler from "../api/fileHandler";
 import { fileIsOfType } from './endUser/EndUserEntryDialog';
 import ImportRunningDialogContents from "./endUser/ImportRunningDialogContents";
 import Select from "react-select";
-import { SELECT_STYLE } from "./Constants";
+import { API_STATE, SELECT_STYLE } from "./Constants";
 
 function MappingsMatcher(props) {
   const [fileHeaders, setFileHeaders] = React.useState([]);
@@ -61,7 +62,7 @@ function MappingsMatcher(props) {
           return "";
         };
         const mappings = { ...props.mappings };
-        props.metadata.columns.forEach(
+        props?.metadata?.columns?.forEach(
           (c) => (mappings[c.columnName] = fuzzySearch(c.columnName))
         );
         props.setMappings(mappings);
@@ -111,7 +112,7 @@ function MappingsMatcher(props) {
   if (fileHeaders.length > 0) {
     return (
       <FlexBox direction="Column">
-        {props.metadata && props.metadata.columns.map((column) => {
+        {props?.metadata && props?.metadata?.columns?.map((column) => {
           return (
             <FlexBox
               direction="Row"
@@ -209,10 +210,10 @@ function MappingsMatcher(props) {
     );
   }
   // If in raw input mode
-  if (props.metadata !== undefined && (rawInput || Object.keys(props.mappings).filter((x) => !!x).length !== 0)) {
+  if (props.metadata !== undefined && (rawInput || Object.keys(props?.mappings).filter((x) => !!x).length !== 0)) {
     return (
       <FlexBox direction="Column">
-        {props.metadata.columns.map((column) => {
+        {props.metadata?.columns?.map((column) => {
           return (
             <FlexBox
               direction="Row"
@@ -342,14 +343,16 @@ function MappingSelector(props) {
     setTempMappings(props.mappings)
   }, [props.mappings])
 
+
   return (
     <Panel headerText="Data Mappings" collapsed={true}>
       <div style={{ display: "flex", flexDirection: "column", paddingLeft: 30 }}>
+        {props?.mappingStatus === API_STATE?.complete && Object.values(importTypeMetadata || {})?.length === 0  && <Loader/>}
         <Label wrappingType="Normal">
           <b>Optionally</b> configure mappings if columns in the user's uploaded data will have different names to the expected column names of the data import service.
         </Label>
         <Button
-          disabled={importTypeMetadata === undefined}
+          disabled={Object.values(importTypeMetadata || {})?.length === 0}
           onClick={() => {
             setDialogOpen(true);
           }}

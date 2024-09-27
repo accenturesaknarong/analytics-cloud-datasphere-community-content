@@ -2,12 +2,13 @@
 import React from "react";
 import ModelSelector from "./components/ModelSelector";
 import MappingSelector from "./components/MappingSelector";
-import { ThemeProvider } from "@ui5/webcomponents-react";
+import { Loader, ThemeProvider } from "@ui5/webcomponents-react";
 import DataImportServiceApi from "./api/dataImportService";
 import Error from "./components/Error";
 import EndUserWrapper from "./components/endUser/EndUserWrapper";
 import AdminBuilderHeader from "./components/AdminBuilderHeader";
 import DimensionSelector from "./components/DimensionSelector";
+import { API_STATE } from "./components/Constants";
 
 function App(props) {
   const IMPORT_TYPE = "masterData"
@@ -16,6 +17,8 @@ function App(props) {
   const [dimension, setDimension] = React.useState(props.dimension?.length > 0 ? props.dimension : undefined)
   const [metadata, setMetadata] = React.useState({});
   const [error, setError] = React.useState("");
+  const [mappingObj, setMappingObj] = React.useState({})
+  const [mappingObjStatus, setMappingObjStatus] = React.useState(API_STATE.complete);
 
   const modelChangeHandler = (newModelId) => {
     if (newModelId !== modelId) {
@@ -68,10 +71,30 @@ function App(props) {
       });
   }, [modelId]);
 
-  const filterColumnByDimension = (dimension, metaData) => {
-    const columns = dimension ? metaData?.columns?.filter(item => item?.columnName.includes(dimension) && item?.columnName?.split('_')[0]?.toLowerCase() === dimension?.toLowerCase()) : []
-    return { ...metaData, columns }
-  }
+
+
+  React.useEffect(() => {
+    if (props.isAdminMode && dimension && metadata[IMPORT_TYPE]) {
+      const tempMeta = metadata[IMPORT_TYPE]
+      const columns = dimension ? tempMeta?.columns?.filter(item => item?.columnName.includes(dimension) && item?.columnName?.split('_')[0]?.toLowerCase() === dimension?.toLowerCase()) : []
+      if (columns?.length > 1) {
+        props.setWidgetAttribute("publicDimensionId", null);
+        setMappingObj({ ...tempMeta, columns })
+      }
+      if (columns?.length === 1) {
+        DataImportServiceApi?.getInstance()?.getMetaDataFromPublicDimension(dimension , ({id}) => {
+          props.setWidgetAttribute("publicDimensionId", id)
+        }).then((data) => {
+          setMappingObj(data?.publicDimensionData)
+          setMappingObjStatus(API_STATE.complete)
+        }).catch(err => {
+          setMappingObjStatus(API_STATE.err)
+          return;
+        })
+      }
+    }
+
+  }, [dimension, metadata[IMPORT_TYPE]])
 
   const showScreen = React.useMemo(() => {
     switch (props.mode) {
@@ -85,9 +108,10 @@ function App(props) {
               <DimensionSelector importTypeMetadata={metadata[IMPORT_TYPE]} setDimension={setDimension} dimension={dimension} />
               <MappingSelector
                 modelId={modelId}
-                importTypeMetadata={dimension ? filterColumnByDimension(dimension, metadata[IMPORT_TYPE]) : metadata[IMPORT_TYPE]}
+                importTypeMetadata={mappingObj}
                 mappings={mappings}
                 setMappings={setMappings}
+                mappingStatus={mappingObjStatus}
               />
             </div>
           </div>
@@ -99,12 +123,12 @@ function App(props) {
       }
       case ("STORY"):
       default: {
-        return <EndUserWrapper modelId={props.modelId} metadata={props.metadata} importType={IMPORT_TYPE} mappings={props.mappings} defaultValues={props.defaultValues} />
+        return <EndUserWrapper modelId={props.modelId} metadata={props.metadata} importType={IMPORT_TYPE} mappings={props.mappings} publicDimensionId={props?.publicDimensionId} defaultValues={props.defaultValues} />
       }
     }
-  }, [metadata, dimension]);
+  }, [metadata, dimension, mappingObj, mappingObjStatus]);
 
-  return <ThemeProvider>{(!modelId || (modelId && Object.keys(metadata)?.length > 0)) && showScreen}</ThemeProvider>;
+  return <ThemeProvider>{(!modelId || (modelId && Object.keys(metadata)?.length > 0)) ? showScreen : <Loader />}</ThemeProvider>;
 }
 
 export default App;

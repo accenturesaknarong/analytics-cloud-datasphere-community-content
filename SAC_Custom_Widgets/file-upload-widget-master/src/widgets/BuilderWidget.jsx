@@ -20,6 +20,7 @@ export default class BuilderWidget extends HTMLElement {
     this.defaultValues = {};
     this.jobSettings = {};
     this.sheetName = "";
+    this.publicDimensionId = ""
 
     // Class Properties, try to avoid adding too many here
     this.updateSettings();
@@ -67,6 +68,9 @@ export default class BuilderWidget extends HTMLElement {
     if (changedProperties["dimension"] !== undefined) {
       this.dimension = changedProperties["dimension"];
     }
+    if (changedProperties["publicDimensionId"] !== undefined) {
+      this.publicDimensionId = changedProperties["publicDimensionId"]
+    }
     this.updateSettings();
   }
 
@@ -103,6 +107,7 @@ export default class BuilderWidget extends HTMLElement {
       defaultValues: this.defaultValues,
       sheetName: this.sheetName,
       dimension: this.dimension,
+      publicDimensionId: this.publicDimensionId
     };
     this.setAttribute("settings", JSON.stringify(settings));
   }

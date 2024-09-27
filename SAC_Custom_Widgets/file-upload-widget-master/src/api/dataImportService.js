@@ -17,6 +17,7 @@ export default class DataImportServiceApi {
   MODELS_ENDPOINT = "/models";
   JOBS_ENDPOINT = "/jobs";
   WIDGET_ENDPOINT = "/widget"
+  PUBLIC_DIMENSION = "/publicDimensions"
 
   BASE_HEADER = {
     "x-sap-dis-request-source": "fileUploadWidget"
@@ -179,6 +180,7 @@ export default class DataImportServiceApi {
     userDefaultValues = {},
     columnNames,
     mappings,
+    publicDimensionId
   ) {
     this.resultObj = new DataImportJobResults();
     this.resultObj.columnNames = [[...columnNames, "Rejection Reason"].join(this.delimiter)]
@@ -192,7 +194,7 @@ export default class DataImportServiceApi {
     let createdJob = {};
 
     try {
-      createdJob = await this.createJob(modelId, this.importType, userDefaultValues, mappings);
+      createdJob = await this.createJob(modelId, this.importType, userDefaultValues, mappings, publicDimensionId);
     } catch (error) {
       this.resultObj.error = error;
       callback(this.status, this.resultObj);
@@ -301,8 +303,8 @@ export default class DataImportServiceApi {
    * @param {String} userDefaultValues - Default Values specifed by the end user
    * @returns {Object} The Response of the Job Creation Request
    */
-  async createJob(modelId, importType = "factData", userDefaultValues = {}, mappings) {
-    const jobUrl = this.URL + this.MODELS_ENDPOINT + "/" + modelId + "/" + importType;
+  async createJob(modelId, importType = "factData", userDefaultValues = {}, mappings, publicDimensionId) {
+    const jobUrl = `${this.URL}${publicDimensionId ? `${this.PUBLIC_DIMENSION}/${publicDimensionId}/publicDimensionData` : `${this.MODELS_ENDPOINT}/${modelId}${importType}`}`;
 
     const jobSettings = {
       ...this.jobSettings,
@@ -322,8 +324,8 @@ export default class DataImportServiceApi {
         ...this.BASE_HEADER
       },
       body: JSON.stringify({
-        Mapping: mappings,
-        DefaultValues: { ...this.defaultValues, ...userDefaultValues },
+        Mapping: { ...mappings },
+        DefaultValues: publicDimensionId ? {} : { ...this.defaultValues, ...userDefaultValues },
         JobSettings: jobSettings,
       }),
     };
@@ -608,4 +610,42 @@ export default class DataImportServiceApi {
   convertDMInvalidRowsToCSV(invalidRowsValidation) {
     return invalidRowsValidation.failedRows.map((row) => Object.values(row).join(this.delimiter))
   }
+
+  async getPublicDimension() {
+    const url = this.URL + this.PUBLIC_DIMENSION
+
+    const options = {
+      method: "GET",
+      headers: {
+        "x-csrf-token": this.csrfToken,
+        ...this.BASE_HEADER
+      }
+    };
+    return await fetch(url, options);
+  }
+
+  async getMetaDataFromPublicDimension(name, callback) {
+    const publicDimensions = await this.getPublicDimension().then(resp => {
+      if (resp?.ok) {
+        return resp?.json()?.then(data => data?.publicDimensions)
+      }
+    });
+    if (publicDimensions?.length > 0) {
+      const id = publicDimensions?.find(item => item.publicDimensionName === name)?.publicDimensionID
+      callback({ id })
+      if (id) {
+        const url = `${this.URL}${this.PUBLIC_DIMENSION}/${id}/metadata`
+        const options = {
+          method: "GET",
+          headers: {
+            "x-csrf-token": this.csrfToken,
+            ...this.BASE_HEADER
+          }
+        };
+        const resp = await fetch(url, options)
+        return resp?.ok ? resp?.json() : false
+      }
+    }
+  }
+
 }

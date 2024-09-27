@@ -43,6 +43,7 @@ function EndUserWrapper(props) {
         importResult={importResult}
         isViewMode={isViewMode}
         jobFinsishedEventDispatcher={props.jobFinsishedEventDispatcher}
+        publicDimensionId = {props?.publicDimensionId}
       />
     </>
   );
