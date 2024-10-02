@@ -304,7 +304,7 @@ export default class DataImportServiceApi {
    * @returns {Object} The Response of the Job Creation Request
    */
   async createJob(modelId, importType = "factData", userDefaultValues = {}, mappings, publicDimensionId) {
-    const jobUrl = `${this.URL}${publicDimensionId ? `${this.PUBLIC_DIMENSION}/${publicDimensionId}/publicDimensionData` : `${this.MODELS_ENDPOINT}/${modelId}${importType}`}`;
+    const jobUrl = `${this.URL}${publicDimensionId ? `${this.PUBLIC_DIMENSION}/${publicDimensionId}/publicDimensionData` : `${this.MODELS_ENDPOINT}/${modelId}/${importType}`}`;
 
     const jobSettings = {
       ...this.jobSettings,

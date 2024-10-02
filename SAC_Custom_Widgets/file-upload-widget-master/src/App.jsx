@@ -48,7 +48,7 @@ function App(props) {
       const keys = metadata[IMPORT_TYPE]?.keys
       const tempDefaultValue = {}
       keys?.forEach(element => {
-        tempDefaultValue[element] = '-'
+        tempDefaultValue[element] = '#'
       });
       props.setWidgetAttribute("defaultValues", tempDefaultValue);
       props.setWidgetAttribute("dimension", dimension);
